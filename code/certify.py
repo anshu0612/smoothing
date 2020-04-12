@@ -1,7 +1,7 @@
 # evaluate a smoothed classifier on a dataset
 import argparse
 import os
-import setGPU
+#import setGPU
 from datasets import get_dataset, DATASETS, get_num_classes
 from core import Smooth
 from time import time
@@ -9,6 +9,7 @@ import torch
 import datetime
 from architectures import get_architecture
 
+torch.cuda.set_device(0)
 parser = argparse.ArgumentParser(description='Certify many examples')
 parser.add_argument("dataset", choices=DATASETS, help="which dataset")
 parser.add_argument("base_classifier", type=str, help="path to saved pytorch model of base classifier")
@@ -37,8 +38,16 @@ if __name__ == "__main__":
     print("idx\tlabel\tpredict\tradius\tcorrect\ttime", file=f, flush=True)
 
     # iterate through the dataset
+
+
+    print("GETTING THE DATASET")    
     dataset = get_dataset(args.dataset, args.split)
-    for i in range(len(dataset)):
+    
+    print("got the dataset @@@@@@")
+    print("DATASET  LENGTHHHHH", len(dataset))
+    
+    for i in range(len(dataset) - 5000):
+        print("Image no.:", i)
 
         # only certify every args.skip examples, and stop after args.max examples
         if i % args.skip != 0:
@@ -51,12 +60,27 @@ if __name__ == "__main__":
         before_time = time()
         # certify the prediction of g around x
         x = x.cuda()
+        print("GOIGN TO CERTIFY")
         prediction, radius = smoothed_classifier.certify(x, args.N0, args.N, args.alpha, args.batch)
+        print("CERTIFIED")
         after_time = time()
         correct = int(prediction == label)
-
+        print("CORRECT======>", correct)
         time_elapsed = str(datetime.timedelta(seconds=(after_time - before_time)))
         print("{}\t{}\t{}\t{:.3}\t{}\t{}".format(
             i, label, prediction, radius, correct, time_elapsed), file=f, flush=True)
+        print("DONE LAH")
+
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        print('Using device:', device)
+        print()
+
+        #Additional Info when using cuda
+        if device.type == 'cuda':
+            print(torch.cuda.get_device_name(0))
+            print(torch.cuda.current_device())
+            print('Memory Usage:')
+            print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
+            print('Cached:   ', round(torch.cuda.memory_cached(0)/1024**3,1), 'GB')
 
     f.close()

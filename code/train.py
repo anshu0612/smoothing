@@ -15,6 +15,8 @@ import time
 import datetime
 from train_utils import AverageMeter, accuracy, init_logfile, log
 
+
+torch.cuda.set_device(0)
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('dataset', type=str, choices=DATASETS)
 parser.add_argument('arch', type=str, choices=ARCHITECTURES)
@@ -42,6 +44,16 @@ parser.add_argument('--gpu', default=None, type=str,
 parser.add_argument('--print-freq', default=10, type=int,
                     metavar='N', help='print frequency (default: 10)')
 args = parser.parse_args()
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print('Using device:', device)
+
+if device.type == 'cuda':
+    print(torch.cuda.get_device_name(0))
+    print(torch.cuda.current_device())
+    print('Memory Usage:')
+    print('Allocated:', round(torch.cuda.memory_allocated(0)/1024**3,1), 'GB')
+    print('Cached:   ', round(torch.cuda.memory_cached(0)/1024**3,1), 'GB')
 
 
 def main():
