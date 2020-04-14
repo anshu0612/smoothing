@@ -87,13 +87,15 @@ def _mnist(split: str) -> Dataset:
 #anshu
 def _svhn(split: str) -> Dataset:
     if split == "train":
-        return datasets.SVHN("./dataset_cache", train=True, download=True, transform=transforms.Compose([
+        return datasets.SVHN("./dataset_cache", split='train', download=True, transform=transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor()
         ]))
+
+
     elif split == "test":
-        return datasets.SVHN("./dataset_cache", train=False, download=True, transform=transforms.ToTensor())
+        return datasets.SVHN("./dataset_cache", split='test', download=True, transform=transforms.ToTensor())
 
 
 
